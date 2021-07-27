@@ -1,4 +1,10 @@
 pipeline {
+    tools {
+        go 'go1.16.6'
+    }
+    environment {
+        GO111MODULE = 'on'
+    }
     agent any
     stages {
         stage('Build') {
