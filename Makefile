@@ -29,3 +29,7 @@ lint: ## Lint all the files and fail if any would be changed by gofmt
 .PHONY: unittest
 unittest: ## Run all the unit tests
 	go test -mod=vendor -count=1 -vet=off -timeout 20m -failfast $$(go list ./... | grep -v 'jenkins_home')
+
+.PHONY: gzip
+gzip: ## Create gz artifacts
+	gzip ./artifacts/${BINARY}
