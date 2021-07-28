@@ -17,4 +17,8 @@
 .idea/
 
 # artifacts
-artifacts/**
+artifacts/
+
+# Local volumes
+jenkins_home/
+nexus-data/
