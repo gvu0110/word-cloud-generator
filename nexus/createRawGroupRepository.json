@@ -1,0 +1,16 @@
+{
+    "name": "cd_class",
+    "online": true,
+    "storage": {
+      "blobStoreName": "default",
+      "strictContentTypeValidation": true
+    },
+    "group": {
+      "memberNames": [
+        "word-cloud-generator"
+      ]
+    },
+    "raw": {
+      "contentDisposition": "ATTACHMENT"
+    }
+  }

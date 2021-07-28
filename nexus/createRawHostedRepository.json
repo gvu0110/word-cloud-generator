@@ -1,0 +1,20 @@
+{
+    "name": "word-cloud-generator",
+    "online": true,
+    "storage": {
+      "blobStoreName": "default",
+      "strictContentTypeValidation": false,
+      "writePolicy": "ALLOW_ONCE"
+    },
+    "cleanup": {
+      "policyNames": [
+        ""
+      ]
+    },
+    "component": {
+      "proprietaryComponents": false
+    },
+    "raw": {
+      "contentDisposition": "ATTACHMENT"
+    }
+  }

@@ -1,0 +1,11 @@
+{
+    "userId": "jenkins-user",
+    "firstName": "Jenkins",
+    "lastName": "User",
+    "emailAddress": "jenkins-user@example.com",
+    "password": "P@ssW0rd!",
+    "status": "active",
+    "roles": [
+      "nx-admin"
+    ]
+}
