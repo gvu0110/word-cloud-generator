@@ -11,9 +11,9 @@ pipeline {
         NEXUS_URL = 'nexus:8081'
         NEXUS_GROUP_ID = 'cd_class'
         NEXUS_REPOSITORY = 'word-cloud-generator'
-        NEXUS_CREDENTIAL_ID = 'nexus-user-credentials'
-        ARTIFACT_PATH = './artifacts/word-cloud-generator'
-        VERSION_PATH = './static/version'
+        NEXUS_CREDENTIAL_ID = '44aba9f8-e2ba-4056-915f-ca700aae7b78'
+        ARTIFACTS_FILE = 'artifacts/word-cloud-generator.gz'
+        VERSION_FILE = 'static/version'
     }
     agent any
     stages {
@@ -28,33 +28,33 @@ pipeline {
             }
         }
         
-        stage('Publish to Nexus Repository Manager') {
+        stage('Publish to Nexus') {
             steps {
                 script {
-                    def versionFile = readFile(VERSION_PATH);
-                    def jsonSlurper = new JsonSlurper();
-                    appVersion = jsonSlurper.parseText(versionFile)["version"];
-                    def artifact = new File(ARTIFACT_PATH);
-                    if (artifact.exists()) {
-                        println("*** File: ${ARTIFACT_PATH}, version ${appVersion}");
-                        nexusArtifactUploader(
-                            nexusVersion: NEXUS_VERSION,
-                            protocol: NEXUS_PROTOCOL,
-                            nexusUrl: NEXUS_URL,
-                            groupId: NEXUS_GROUP_ID,
-                            version: appVersion,
-                            repository: NEXUS_REPOSITORY,
-                            credentialsId: NEXUS_CREDENTIAL_ID,
-                            artifacts: [
-                                [artifactId: 'word-cloud-generator',
-                                classifier: '',
-                                file: artifactPath,
-                                type: 'gz']
-                            ]
-                        );
-                    } else {
-                        println("*** File: ${ARTIFACT_PATH} could not be found");
-                    }
+                    def String versionFile = readFile("${WORKSPACE}/${VERSION_FILE}")
+                    def jsonSlurper = new JsonSlurper()
+                    def appVersion = jsonSlurper.parseText(versionFile)["version"]
+
+                    def String artifactsPath = "${WORKSPACE}/${ARTIFACTS_FILE}"
+                    File artifacts = new File(artifactsPath)
+                    assert artifacts.exists() : "*** File ${artifactsPath} not found"
+                    
+                    println("*** File: ${artifactsPath}, version ${appVersion}")
+                    nexusArtifactUploader(
+                        nexusVersion: NEXUS_VERSION,
+                        protocol: NEXUS_PROTOCOL,
+                        nexusUrl: NEXUS_URL,
+                        groupId: NEXUS_GROUP_ID,
+                        version: appVersion,
+                        repository: NEXUS_REPOSITORY,
+                        credentialsId: NEXUS_CREDENTIAL_ID,
+                        artifacts: [
+                            [artifactId: 'word-cloud-generator',
+                            classifier: '',
+                            file: artifactsPath,
+                            type: 'gz']
+                        ]
+                    )
                 }
             }
         }
