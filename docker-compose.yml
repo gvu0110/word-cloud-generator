@@ -1,0 +1,26 @@
+version: "3"
+
+services:
+  jenkins:
+    build: ./jenkins
+    image: cd_jenkins:latest
+    container_name: jenkins
+    ports:
+      - "8080:8080"
+      - "5000:5000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./jenkins_home:/var/jenkins_home
+  
+  nexus:
+    image: sonatype/nexus3:3.32.0
+    container_name: nexus
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./nexus-data:/nexus-data
+
+networks: 
+  default:
+    external: true
+    name: shared-backend
