@@ -11,6 +11,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./jenkins_home:/var/jenkins_home
+      - ./ansible:/ansible
   
   nexus:
     image: sonatype/nexus3:3.32.0
@@ -19,6 +20,14 @@ services:
       - "8081:8081"
     volumes:
       - ./nexus-data:/nexus-data
+    
+  test_fixture:
+    build: ./test_fixture
+    image: test_fixture:latest
+    container_name: test_fixture
+    ports:
+        - "8888:8888"
+        - "2222:22"
 
 networks: 
   default:
