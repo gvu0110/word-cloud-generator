@@ -1,25 +1,26 @@
-import groovy.json.JsonSlurper
-
 pipeline {
     tools {
         go 'go1.16.6'
     }
-    environment {
-        GO111MODULE = 'on'
-        NEXUS_VERSION = 'nexus3'
-        NEXUS_PROTOCOL = 'http'
-        NEXUS_URL = 'nexus:8081'
-        NEXUS_GROUP_ID = 'cd_class'
-        NEXUS_REPOSITORY = 'word-cloud-generator'
-        NEXUS_CREDENTIAL_ID = '44aba9f8-e2ba-4056-915f-ca700aae7b78'
-        ARTIFACTS_FILE = 'artifacts/word-cloud-generator.gz'
-        VERSION_FILE = 'static/version'
-    }
+
     agent any
     stages {
+        script {
+            env.APP_VERSION = "1.$BUILD_NUMBER"
+            def props = readProperties file: 'metadata.properties'
+            env.NEXUS_VERSION = props.NEXUS_VERSION
+            env.NEXUS_PROTOCOL = props.NEXUS_PROTOCOL
+            env.NEXUS_URL = props.NEXUS_URL
+            env.NEXUS_GROUP_ID = props.NEXUS_GROUP_ID
+            env.NEXUS_REPOSITORY = props.NEXUS_REPOSITORY
+            env.NEXUS_CREDENTIAL_ID = props.NEXUS_CREDENTIAL_ID
+            env.NEXUS_ARTIFACT_ID = props.NEXUS_ARTIFACT_ID
+            env.ARTIFACTS_FILE = props.ARTIFACTS_FILE
+        }
+
         stage('Build') {
             steps {
-                sh 'sed -i "s/1.DEVELOPMENT/1.$BUILD_NUMBER/g" ./static/version'
+                sh 'sed -i "s/1.DEVELOPMENT/$VERSION/g" ./static/version'
                 sh 'make init'
                 sh 'make lint'
                 sh 'make unittest'
@@ -31,31 +32,38 @@ pipeline {
         stage('Publish to Nexus') {
             steps {
                 script {
-                    def String versionFile = readFile("${WORKSPACE}/${VERSION_FILE}")
-                    def jsonSlurper = new JsonSlurper()
-                    def appVersion = jsonSlurper.parseText(versionFile)["version"]
-
-                    def String artifactsPath = "${WORKSPACE}/${ARTIFACTS_FILE}"
+                    def String artifactsPath = "$WORKSPACE/$ARTIFACTS_FILE"
                     File artifacts = new File(artifactsPath)
-                    assert artifacts.exists() : "*** File ${artifactsPath} not found"
+                    assert artifacts.exists() : "*** File $artifactsPath not found"
                     
-                    println("*** File: ${artifactsPath}, version ${appVersion}")
+                    println("*** File: $artifactsPath, version $APP_VERSION")
                     nexusArtifactUploader(
                         nexusVersion: NEXUS_VERSION,
                         protocol: NEXUS_PROTOCOL,
                         nexusUrl: NEXUS_URL,
                         groupId: NEXUS_GROUP_ID,
-                        version: appVersion,
+                        version: APP_VERSION,
                         repository: NEXUS_REPOSITORY,
                         credentialsId: NEXUS_CREDENTIAL_ID,
                         artifacts: [
-                            [artifactId: 'word-cloud-generator',
+                            [artifactId: NEXUS_ARTIFACT_ID,
                             classifier: '',
                             file: artifactsPath,
                             type: 'gz']
                         ]
                     )
                 }
+            }
+        }
+
+        stage('Deploy to test fixture') {
+            steps {
+                sh '''
+                    docker run --rm -it --name ansible --network="shared-backend" ansible:latest \
+                        /usr/bin/ansible-playbook /etc/ansible/main.yml \
+                        -i /etc/ansible/hosts.yml \
+                        --extra-var "hosts=test_fixture, repository=$NEXUS_REPOSITORY, group=$NEXUS_GROUP_ID, version=$VERSION, artifactId=$NEXUS_ARTIFACT_ID, username=$NEXUS_USERNAME, password=$NEXUS_PASSWORD"
+                '''
             }
         }
     }
