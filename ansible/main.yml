@@ -1,0 +1,11 @@
+- hosts: "{{ hosts }}"
+  tasks:
+    - name: Ping
+      ping:
+
+    - name: Download artifacts from Nexus
+      get_url:
+        url: http://nexus:8081/repository/{{ repository }}/{{ group }}/{{ repository }}/{{ version }}/{{ artifactId }}-{{ version }}.gz
+        dest: /bin/word-cloud-generator
+        username: '{{ username }}'
+        password: '{{ password }}'
